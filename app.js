@@ -31,13 +31,7 @@ const item3 = new Item({
 
 const defaultItems = [item1, item2, item3];
 
-Item.insertMany(defaultItems, function(err){
-    if(err) {
-        console.log(err);
-    }else {
-        console.log("Successfully inserted into the database");
-    }
-})
+
 
 app.get("/", function(req, res) {
     var today = new Date();
@@ -49,10 +43,26 @@ app.get("/", function(req, res) {
 
     var day = today.toLocaleDateString("en-US", options);
 
-    res.render("list", {
-        kindOfDay: day,
-        newListItems: items
-    });
+    Item.find({}, function(err, foundItems) {
+        if(foundItems.length === 0) {
+            Item.insertMany(defaultItems, function(err){
+                if(err) {
+                    console.log(err);
+                } else{
+                    console.log("Successfully saved default items to DB")
+                }
+            });
+            res.redirect("/");
+        } else {
+            res.render("list", {
+                kindOfDay: day,
+                newListItems: foundItems
+            });
+        }
+
+    })
+
+   
 })
 
 app.post("/", function(req, res) {
